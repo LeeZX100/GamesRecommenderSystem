@@ -1,104 +1,59 @@
-{
- "cells": [
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "d46f9804-c370-491b-a3c6-6e36e33b38bc",
-   "metadata": {},
-   "outputs": [],
-   "source": [
-    "import pandas as pd\n",
-    "\n",
-    "# Load the dataset\n",
-    "file_path = \"D:\\\\NewDataSet.csv\"\n",
-    "df = pd.read_csv(file_path)\n",
-    "\n",
-    "# Ensure 'Genres' column is treated as a string\n",
-    "df['Genres'] = df['Genres'].astype(str).fillna('')\n",
-    "\n",
-    "# Convert 'User Score' to numeric, handling non-numeric values\n",
-    "df['User Score'] = pd.to_numeric(df['User Score'], errors='coerce')\n",
-    "\n",
-    "def get_user_preferences():\n",
-    "    while True:\n",
-    "        try:\n",
-    "            genres = input(\"Enter your preferred genre: \").strip()\n",
-    "            if not genres:\n",
-    "                raise ValueError(\"Genre cannot be empty.\")\n",
-    "            \n",
-    "            min_user_score = float(input(\"Enter your minimum acceptable user score: \").strip())\n",
-    "            if min_user_score < 0:\n",
-    "                raise ValueError(\"User score must be non-negative.\")\n",
-    "            \n",
-    "            return {\n",
-    "                'Genres': genres,\n",
-    "                'Minimum User Score': min_user_score\n",
-    "            }\n",
-    "        except ValueError as e:\n",
-    "            print(f\"Invalid input: {e}. Please try again.\")\n",
-    "\n",
-    "def recommend_games(df, preferences):\n",
-    "    # Check for 'Genres' and 'User Score' columns\n",
-    "    if 'Genres' not in df.columns or 'User Score' not in df.columns:\n",
-    "        raise ValueError(\"The dataset must contain 'Genres' and 'User Score' columns.\")\n",
-    "    \n",
-    "    # Filter by genre\n",
-    "    genre_filter = df['Genres'].str.contains(preferences['Genres'], case=False, na=False)\n",
-    "    \n",
-    "    # Filter by user score\n",
-    "    score_filter = df['User Score'] >= preferences['Minimum User Score']\n",
-    "    \n",
-    "    # Apply filters\n",
-    "    filtered_df = df[genre_filter & score_filter]\n",
-    "    \n",
-    "    return filtered_df\n",
-    "\n",
-    "# Get User Preferences\n",
-    "user_preferences = get_user_preferences()\n",
-    "\n",
-    "# Get Recommended Games\n",
-    "try:\n",
-    "    recommended_games = recommend_games(df, user_preferences)\n",
-    "    \n",
-    "    if not recommended_games.empty:\n",
-    "        # Show top 10 recommendations\n",
-    "        top_10_games = recommended_games.head(10)\n",
-    "        print(\"Top 10 Recommended Games based on your preferences:\")\n",
-    "        print(top_10_games)\n",
-    "    else:\n",
-    "        print(\"No games match your preferences.\")\n",
-    "except Exception as e:\n",
-    "    print(f\"An error occurred: {e}\")\n"
-   ]
-  },
-  {
-   "cell_type": "code",
-   "execution_count": null,
-   "id": "74fe0144-fc5d-4fc6-b227-dac882a18832",
-   "metadata": {},
-   "outputs": [],
-   "source": []
-  }
- ],
- "metadata": {
-  "kernelspec": {
-   "display_name": "Python 3 (ipykernel)",
-   "language": "python",
-   "name": "python3"
-  },
-  "language_info": {
-   "codemirror_mode": {
-    "name": "ipython",
-    "version": 3
-   },
-   "file_extension": ".py",
-   "mimetype": "text/x-python",
-   "name": "python",
-   "nbconvert_exporter": "python",
-   "pygments_lexer": "ipython3",
-   "version": "3.12.4"
-  }
- },
- "nbformat": 4,
- "nbformat_minor": 5
-}
+import streamlit as st
+import pandas as pd
+
+# Load the dataset
+file_path = "D:\\NewDataSet.csv"  # Make sure the file path is accessible in the environment
+df = pd.read_csv(file_path)
+
+# Ensure 'Genres' column is treated as a string
+df['Genres'] = df['Genres'].astype(str).fillna('')
+
+# Convert 'User Score' to numeric, handling non-numeric values
+df['User Score'] = pd.to_numeric(df['User Score'], errors='coerce')
+
+# Function to get user preferences via Streamlit inputs
+def get_user_preferences():
+    genres = st.text_input("Enter your preferred genre:").strip()
+    min_user_score = st.number_input("Enter your minimum acceptable user score:", min_value=0.0)
+    return {
+        'Genres': genres,
+        'Minimum User Score': min_user_score
+    }
+
+# Function to recommend games based on user preferences
+def recommend_games(df, preferences):
+    # Check for 'Genres' and 'User Score' columns
+    if 'Genres' not in df.columns or 'User Score' not in df.columns:
+        raise ValueError("The dataset must contain 'Genres' and 'User Score' columns.")
+    
+    # Filter by genre
+    genre_filter = df['Genres'].str.contains(preferences['Genres'], case=False, na=False)
+    
+    # Filter by user score
+    score_filter = df['User Score'] >= preferences['Minimum User Score']
+    
+    # Apply filters
+    filtered_df = df[genre_filter & score_filter]
+    
+    return filtered_df
+
+# Main Streamlit app logic
+st.title("Game Recommendation System")
+
+# Get User Preferences
+user_preferences = get_user_preferences()
+
+# Recommend Games
+if user_preferences['Genres']:  # Check if genres input is provided
+    try:
+        recommended_games = recommend_games(df, user_preferences)
+        
+        if not recommended_games.empty:
+            # Show top 10 recommendations
+            top_10_games = recommended_games.head(10)
+            st.write("Top 10 Recommended Games based on your preferences:")
+            st.dataframe(top_10_games)
+        else:
+            st.write("No games match your preferences.")
+    except Exception as e:
+        st.write(f"An error occurred: {e}")
