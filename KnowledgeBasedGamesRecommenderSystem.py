@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 
 # Load the dataset
-file_path = "D:\\NewDataSet.csv"  # Make sure the file path is accessible in the environment
+file_path = r"C:\Users\LeeZX\OneDrive\Desktop\NewDataSet.csv"
 df = pd.read_csv(file_path)
 
 # Ensure 'Genres' column is treated as a string
@@ -13,8 +13,8 @@ df['User Score'] = pd.to_numeric(df['User Score'], errors='coerce')
 
 # Function to get user preferences via Streamlit inputs
 def get_user_preferences():
-    genres = st.text_input("Enter your preferred genre:").strip()
-    min_user_score = st.number_input("Enter your minimum acceptable user score:", min_value=0.0)
+    genres = st.text_input("Enter your preferred genre:").strip()  # Streamlit input for genre
+    min_user_score = st.number_input("Enter your minimum acceptable user score:", min_value=0.0)  # Numeric input for score
     return {
         'Genres': genres,
         'Minimum User Score': min_user_score
@@ -52,7 +52,7 @@ if user_preferences['Genres']:  # Check if genres input is provided
             # Show top 10 recommendations
             top_10_games = recommended_games.head(10)
             st.write("Top 10 Recommended Games based on your preferences:")
-            st.dataframe(top_10_games)
+            st.dataframe(top_10_games)  # Display the top 10 recommendations in a table
         else:
             st.write("No games match your preferences.")
     except Exception as e:
